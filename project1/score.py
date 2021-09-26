@@ -1,10 +1,9 @@
 from .repository import Repository
 
 class Node:
-    '''
-        Used to contain scoring information for a repository. Also has a left and right child
-        for use in a binary tree.
-    '''
+    # Used to contain scoring information for a repository. Also has a left and right child
+    # for use in a binary tree.
+    
     def __init__(self, repository, score, sub_scores):
         self.repository = repository
         self.score      = score
@@ -21,12 +20,11 @@ class Node:
         }
 
 class Score:
-    '''
-        When a score object is created, a list of repositories and a list of metrics is passed
-        to it's constructor. The purpose of this object is to calculate the sub scores and total
-        score for each repository, and returns an list of these repositories ordered by their
-        total score (in descending order). Uses a binary tree to store the scores.
-    '''
+    # When a score object is created, a list of repositories and a list of metrics is passed
+    # to it's constructor. The purpose of this object is to calculate the sub scores and total
+    # score for each repository, and returns an list of these repositories ordered by their
+    # total score (in descending order). Uses a binary tree to store the scores.
+
     def __init__(self, repositories, metrics):
         self.repositories = repositories
         self.metrics      = metrics
