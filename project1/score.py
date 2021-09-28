@@ -9,8 +9,8 @@ class Node:
         self.score      = score
         self.sub_scores = sub_scores
 
-        self.left       = None
-        self.right      = None
+        self.left  = None
+        self.right = None
 
     def to_dict(self):
         return {
@@ -81,4 +81,3 @@ class Score:
             ordered_list += right_list
 
         return ordered_list
-
