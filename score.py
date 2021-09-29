@@ -1,22 +1,17 @@
-from .repository import Repository
-
 class Node:
     # Used to contain scoring information for a repository. Also has a left and right child
     # for use in a binary tree.
     
-    def __init__(self, repository, score, sub_scores):
+    def __init__(self, repository, score):
         self.repository = repository
         self.score      = score
-        self.sub_scores = sub_scores
-
         self.left  = None
         self.right = None
 
     def to_dict(self):
         return {
-            'repository': self.repository, 
-            'score':      self.score, 
-            'sub_scores': self.sub_scores
+            'repository': self.repository.name, 
+            'sub scores': self.repository.scores,
         }
 
 class Score:
@@ -25,28 +20,24 @@ class Score:
     # score for each repository, and returns an list of these repositories ordered by their
     # total score (in descending order). Uses a binary tree to store the scores.
 
-    def __init__(self, repositories, metrics):
-        self.repositories = repositories
+    def __init__(self, metrics):
         self.metrics      = metrics
         self.tree         = None
 
-    def get_scores(self):
-        for repository in self.repositories:
-            score, sub_scores = self.__get_scores(repository)
-            node              = Node(repository, score, sub_scores)
+    def get_scores(self, repositories):
+        for repository in repositories:
+            score = self.__determine_score(repository)
+            node  = Node(repository, score)
             self.__insert_into_tree(self.tree, node)
 
         return self.__get_ordered_list(self.tree)
 
-    def __get_scores(self, repository):
-        score      = 0
-        sub_scores = []
-        for metric in self.metrics:
-            sub_score = metric.calculate_score(repository)
-            score    += sub_score * metric.weight
-            sub_scores.append(sub_score)
-
-        return score, sub_scores
+    def __determine_score(self, repository):
+        score = 0
+        for i, sub_score in enumerate(repository.scores):
+            score += sub_score * self.metrics[i].weight
+        
+        return score
 
     def __insert_into_tree(self, tree, node):
         if self.tree is None:
