@@ -78,7 +78,7 @@ class Repository():
 
         for commit in self.repo.get_commits(since=dateStart):
             if commit.author is not None:
-                commits.append(Commit(commit.author))
+                commits.append(Commit(commit.author.node_id))
 
         return commits
 
