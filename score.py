@@ -20,7 +20,7 @@ class Node:
 
 class Score:
     # When a score object is created, a list of repositories and a list of metrics is passed
-    # to it's constructor. The purpose of this object is to calculate the sub scores and total
+    # to it's constructor. The purpose of this class is to calculate the sub scores and total
     # score for each repository, and returns an list of these repositories ordered by their
     # total score (in descending order). Uses a binary tree to store the scores.
 

@@ -19,11 +19,11 @@ class Commit():
         self.author = author
 
 class Repository():
-    # A class that provides an API for interacting with a repository stored on github.
+    # A class that, when initialzed, fetches all needed data from the github repository.
     # Accepts a url and a github object. The github object is used to interact with the
     # github REST API. The url could either be a github url or an npm url. If it is an 
-    # npm url, it is converted into a github url. When an object is initialized, fetches
-    # all needed data from github. 
+    # npm url, it is converted into a github url. Also contains a list of sub-scores that
+    # have been calculated for this repository. 
 
     def __init__(self, url, github):
         self.github = github

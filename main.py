@@ -14,9 +14,8 @@ def clear_log_file():
         file.write("")
 
 def create_list_of_repositories(file_name, github):
-    # Accepts the file name where a list of repository urls is located. Creates a 
-    # list of Repository objects from these urls and returns this list. Removes the 
-    # '\n' character from the end of each line.
+    # Accepts the file name that contains a list of repository urls. Creates a list of Repository 
+    # objects from these urls and returns this list. 
 
     repositories = []
     with open(file_name, "r") as file:
@@ -33,11 +32,12 @@ def create_list_of_repositories(file_name, github):
     log.log_repo_list_created(repositories)
     return repositories
 
-if __name__ == "__main__":
+def main():
     # Creates a github object used for interacting with GitHub. Creates a list of repositories
     # that will be analyzed, and a list of metrics that will be used to calculate the score. 
     # Iterates through each metric to calculate each sub score for each repository. Ranks the 
     # repositories based on the total score.
+    
     clear_log_file()
 
     token  = os.environ["GITHUB_TOKEN"]
@@ -62,3 +62,6 @@ if __name__ == "__main__":
     scores      = scoreObject.get_scores(repositories)
 
     log.log_final_scores(scores)
+
+if __name__ == "__main__":
+    main()

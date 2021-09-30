@@ -12,6 +12,9 @@ class Metric(ABC):
         self.weight = weight
 
     def calculate_scores(self, repositories):
+        # Calculates the metric score for each repository. Returns a normalized list of these
+        # scores. 
+
         scores = []
         for repo in repositories:
             scores.append(self.calculate_score(repo))
@@ -33,6 +36,9 @@ class Metric(ABC):
         pass
 
 class RampUpMetric(Metric):
+    # "Ramp Up" measures how long it takes for developers to start using a package. We look at the
+    # length of the README file to determine how much documentation is available to developers.
+
     def calculate_score(self, repo):
         read_me_size = len(repo.read_me.split("\n"))
 
@@ -40,6 +46,8 @@ class RampUpMetric(Metric):
         return read_me_size
 
 class CorrectnessMetric(Metric):
+    # "Correctness" measures how well the source code satisfies its requirements. 
+
     def calculate_score(self, repo):
         score = repo.num_stars + repo.num_forks
 
@@ -47,6 +55,9 @@ class CorrectnessMetric(Metric):
         return score
 
 class BusFactorMetric(Metric):
+    # "Bus factor" measures how many developers are contributing to a package. We look at how many
+    # unique developers made a contribution (commit) to the source code within the past year. 
+
     def calculate_score(self, repo):
         contributors = {}
         for commit in repo.commits:
@@ -61,6 +72,10 @@ class BusFactorMetric(Metric):
         return score
  
 class ResponsivenessMetric(Metric):
+    # "Responsiveness" measures how quickly developers respond to an issue with the repository. We
+    # use the average time that currently opened issues have been open for and the number of dependencies
+    # that the repository has.
+
     def calculate_score(self, repo):
         ave_time_issue_is_open = self.__get_ave_time_issue_is_open(repo)
         num_dependencies       = self.__get_num_dependencies(repo)
@@ -82,6 +97,8 @@ class ResponsivenessMetric(Metric):
         return repo.num_dependencies
 
 class LicenseMetric(Metric):
+    # We test to see if a repository is compatable with the 'lgpl-2.1'.
+
     def calculate_score(self, repo):
         score = 1 if repo.license_name in ['MIT', 'lgpl-2.1'] else 0
         
