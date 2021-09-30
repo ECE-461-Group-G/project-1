@@ -1,3 +1,4 @@
+from metrics import RampUpMetric
 import unittest
 import warnings
 import os
@@ -32,7 +33,7 @@ class TestRepository(unittest.TestCase):
         self.assertEqual(len(self.repo.open_issues), 2)
 
     def test_commits(self):
-        self.assertEqual(len(self.repo.commits), 3)
+        self.assertEqual(len(self.repo.commits), 4)
         for commit in self.repo.commits:
             self.assertEqual(commit.author, 'MDQ6VXNlcjU2NTE1Mjgz')
 
@@ -42,6 +43,23 @@ class TestRepository(unittest.TestCase):
 
     def test_num_dependencies(self):
         self.assertEqual(self.repo.num_dependencies, 0)
+
+class TestMetrics(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        warnings.simplefilter('ignore', category=ResourceWarning)
+
+        token       = os.environ["GITHUB_TOKEN"]
+        url         = 'https://github.com/ECE-461-Group-G/test'   
+        self.github = Github(token)
+        self.repo   = Repository(url, self.github)
+
+    def test_ramp_up_metric(self):
+        rampUpMetric = RampUpMetric("ramp up", .1)
+        score        = rampUpMetric.calculate_score(self.repo)
+
+        self.assertEqual(score, 4)
+
 
     
     

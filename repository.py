@@ -36,6 +36,7 @@ class Repository():
         self.commits           = self.__get_commits()
         self.read_me           = self.__get_read_me_file()
         self.num_dependencies  = self.__get_num_dependencies()
+        self.license           = self.__get_license()
 
         self.scores = []
 
@@ -93,6 +94,12 @@ class Repository():
         if results == None:
             return 0
         return len(results.group(0).split('"dependencies": {')[1].split(','))
+
+    def __get_license(self):
+        try:
+            return self.repo.get_license()
+        except:
+            return None
     
         
 
