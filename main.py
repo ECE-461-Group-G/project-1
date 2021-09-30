@@ -4,8 +4,14 @@ import os
 from github import Github
 
 from repository import Repository
-from metrics import RampUpMetric, CorrectnessMetric, BusFactorMetric, ResponsivenessMetric
+from metrics import LicenseMetric, RampUpMetric, CorrectnessMetric, BusFactorMetric, ResponsivenessMetric
 from score import Score 
+from log import log
+
+def clear_log_file():
+    log_file = os.environ['LOG_FILE']
+    with open(log_file, "w") as file:
+        file.write("")
 
 def create_list_of_repositories(file_name, github):
     # Accepts the file name where a list of repository urls is located. Creates a 
@@ -14,6 +20,7 @@ def create_list_of_repositories(file_name, github):
 
     repositories = []
     with open(file_name, "r") as file:
+        log.log_url_file_read(file_name)
         for line in file.readlines():
             if line[-1] == "\n":
                 line = line[:-1]
@@ -22,6 +29,8 @@ def create_list_of_repositories(file_name, github):
             repo = Repository(line, github)
             repositories.append(repo)
 
+    log.log_url_file_closed(file_name)
+    log.log_repo_list_created(repositories)
     return repositories
 
 if __name__ == "__main__":
@@ -29,7 +38,8 @@ if __name__ == "__main__":
     # that will be analyzed, and a list of metrics that will be used to calculate the score. 
     # Iterates through each metric to calculate each sub score for each repository. Ranks the 
     # repositories based on the total score.
-    
+    clear_log_file()
+
     token  = os.environ["GITHUB_TOKEN"]
     github = Github(token)
 
@@ -38,13 +48,17 @@ if __name__ == "__main__":
         RampUpMetric("ramp up", .1),
         CorrectnessMetric("correctness", .2),
         BusFactorMetric("bus factor", .5),
-        ResponsivenessMetric("responsiveness", .3)
+        ResponsivenessMetric("responsiveness", .3),
+        LicenseMetric("license", .9)
     ]
+    log.log_metrics_created(metrics)
 
-    scores = []
     for metric in metrics:
-        metric.calculate_scores(repositories)
+        sub_scores = metric.calculate_scores(repositories)
+        for i, sub_score in enumerate(sub_scores):
+            repositories[i].scores.append(sub_score)
 
     scoreObject = Score(metrics)
-    scores = scoreObject.get_scores(repositories)
-    print(scores)
+    scores      = scoreObject.get_scores(repositories)
+
+    log.log_final_scores(scores)

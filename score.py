@@ -1,3 +1,6 @@
+import re
+from log import log
+
 class Node:
     # Used to contain scoring information for a repository. Also has a left and right child
     # for use in a binary tree.
@@ -11,6 +14,7 @@ class Node:
     def to_dict(self):
         return {
             'repository': self.repository.name, 
+            'score':      self.score,
             'sub scores': self.repository.scores,
         }
 
@@ -29,6 +33,9 @@ class Score:
             score = self.__determine_score(repository)
             node  = Node(repository, score)
             self.__insert_into_tree(self.tree, node)
+
+            log.log_overall_score_calculations(repository, self.metrics, score)
+            log.log_overall_score(repository, score)
 
         return self.__get_ordered_list(self.tree)
 

@@ -4,8 +4,9 @@ import re
 from datetime import datetime, timedelta
 
 from urllib.parse import urlparse
-
 from github import Github
+
+from log import log
 
 class Issue():
     def __init__(self, title, created_at, closed_at):
@@ -36,17 +37,21 @@ class Repository():
         self.commits           = self.__get_commits()
         self.read_me           = self.__get_read_me_file()
         self.num_dependencies  = self.__get_num_dependencies()
-        self.license           = self.__get_license()
+        self.license_name      = self.__get_license()
 
         self.scores = []
+
+        log.log_repository_created(self)
 
     def __set_github_repo(self, url):
         url_components = urlparse(url)
         repo_url       = ""
 
-        if 'github' in url_components[1]:            
+        if 'github' in url_components[1]:           
+            log.log_url_type(url, "github")
             repo_url = url
         else:
+            log.log_url_type(url, "npm")
             package_name = urlparse(url)[2].split('/package/')[1]
             url          = "https://api.npms.io/v2/package/{}".format(package_name)
             response     = requests.get(url)
@@ -75,7 +80,7 @@ class Repository():
 
     def __get_commits(self):
         commits   = []
-        dateStart = datetime.now() - timedelta(days=50)
+        dateStart = datetime.now() - timedelta(days=365)
 
         for commit in self.repo.get_commits(since=dateStart):
             if commit.author is not None:
@@ -92,13 +97,16 @@ class Repository():
         results        = re.search('"dependencies": {[^}]*', text)
 
         if results == None:
+            log.log_no_dependencies(self)
             return 0
+
         return len(results.group(0).split('"dependencies": {')[1].split(','))
 
     def __get_license(self):
         try:
-            return self.repo.get_license()
+            return self.repo.get_license().license.spdx_id
         except:
+            log.log_no_license(self)
             return None
     
         
