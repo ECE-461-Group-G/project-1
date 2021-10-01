@@ -1,3 +1,7 @@
+import os
+import subprocess
+import json
+
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 from log import log
@@ -25,6 +29,8 @@ class Metric(ABC):
             return scores
 
         maxScore, minScore = max(scores), min(scores)
+        if maxScore == minScore:
+            maxScore, minScore = 1, 0
         for i, score in enumerate(scores):
             scores[i] = (score - minScore) / (maxScore - minScore)
 
@@ -46,13 +52,48 @@ class RampUpMetric(Metric):
         return read_me_size
 
 class CorrectnessMetric(Metric):
-    # "Correctness" measures how well the source code satisfies its requirements. 
+    # "Correctness" measures how the repository's standard of correctness. Here we perform static 
+    # analysis of the repository with semgrep. Runs a series of tests (found in a "semgrep.txt"
+    # file) and keeps track of the number of issues that appear. As we want a repository to have
+    # the minimal number of issues, we return a negated issue count. 
+
+    directory = "repositories"
 
     def calculate_score(self, repo):
-        score = repo.num_stars + repo.num_forks
+        path = self.__download_repository_to_local(repo)
 
+        num_issues = 0 
+        with open("semgrep.txt", "r") as filePtr:
+            for line in filePtr.readlines():
+                if line.endswith("\n"):
+                    line = line[:-1]
+                num_issues += self.__run_test(line, path)
+
+        score = -num_issues
         log.log_subscore_calculated(repo, score, self)
         return score
+
+    def __download_repository_to_local(self, repo):
+        clone_command = "git clone " + repo.url
+        path          = self.directory + "/" + repo.name
+
+        if not os.path.exists(path):
+            if self.directory not in os.getcwd():
+                os.chdir(self.directory)
+            os.system(clone_command)
+
+        return path
+
+    def __run_test(self, test_name, repository_path):
+        output = subprocess.Popen(["semgrep", "--config", test_name, "--json", repository_path], stdout=subprocess.PIPE)
+        output.wait()
+
+        line   = output.stdout.readline()
+        object = json.loads(line)
+
+        num_issues = len(object['results'])
+        log.log_semgrep_test_results(repository_path.split("/")[1], test_name, num_issues)
+        return num_issues
 
 class BusFactorMetric(Metric):
     # "Bus factor" measures how many developers are contributing to a package. We look at how many

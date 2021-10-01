@@ -60,6 +60,7 @@ class Repository():
         url_components = urlparse(repo_url)
         self.repo      = self.github.get_repo(url_components[2][1:])
         self.name      = self.repo.name
+        self.url       = repo_url
 
     def __fetch_num_stars(self):
         return self.repo.stargazers_count

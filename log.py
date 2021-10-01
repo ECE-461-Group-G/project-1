@@ -76,12 +76,16 @@ class Log():
         log = self.trace + "Repository '" + repository.name + "' has overall score of " + str(score)
         self.__write_log_to_file(log)
 
-    def log_final_scores(self, scores):
+    def log_final_rankings(self, rankings):
         log = self.trace + "final scores: ["
-        for score in scores:
-            log += str(score) + ", "
+        for ranking in rankings:
+            log += str(ranking) + ", "
         log += "]"
         
+        self.__write_log_to_file(log)
+
+    def log_semgrep_test_results(self, repo_name, test_name, num_issues):
+        log = self.debug + "semgrep test " + test_name + " found " + str(num_issues) + " issues with repository '" + repo_name + "'"
         self.__write_log_to_file(log)
 
     def __write_log_to_file(self, log):

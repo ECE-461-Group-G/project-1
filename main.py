@@ -5,7 +5,7 @@ from github import Github
 
 from repository import Repository
 from metrics import LicenseMetric, RampUpMetric, CorrectnessMetric, BusFactorMetric, ResponsivenessMetric
-from score import Score 
+from score import Ranking 
 from log import log
 
 def clear_log_file():
@@ -32,6 +32,21 @@ def create_list_of_repositories(file_name, github):
     log.log_repo_list_created(repositories)
     return repositories
 
+def print_results(metrics, rankings):
+    # Prints out the metric names, repository urls, repository total scores, and repository sub 
+    # scores. The repositories are printed in order of their total score. 
+
+    header = "URL"
+    for metric in metrics:
+        header += " " + metric.name
+    print(header)
+
+    for ranking in rankings:
+        repo_line = ranking.repository.url + " " + str(ranking.score)
+        for score in ranking.repository.scores:
+            repo_line += " " + str(score)
+        print(repo_line)
+
 def main():
     # Creates a github object used for interacting with GitHub. Creates a list of repositories
     # that will be analyzed, and a list of metrics that will be used to calculate the score. 
@@ -45,11 +60,11 @@ def main():
 
     repositories = create_list_of_repositories(sys.argv[1], github)
     metrics      = [
-        RampUpMetric("ramp up", .1),
-        CorrectnessMetric("correctness", .2),
-        BusFactorMetric("bus factor", .5),
-        ResponsivenessMetric("responsiveness", .3),
-        LicenseMetric("license", .9)
+        RampUpMetric        ("RAMP_UP_SCORE"              , .1),
+        CorrectnessMetric   ("CORRECTNESS_SCORE"          , .2),
+        BusFactorMetric     ("BUS_FACTOR_SCORE"           , .5),
+        ResponsivenessMetric("RESPONSIVE_MAINTAINER_SCORE", .3),
+        LicenseMetric       ("LICENSE_SCORE"              , .9)
     ]
     log.log_metrics_created(metrics)
 
@@ -58,10 +73,12 @@ def main():
         for i, sub_score in enumerate(sub_scores):
             repositories[i].scores.append(sub_score)
 
-    scoreObject = Score(metrics)
-    scores      = scoreObject.get_scores(repositories)
+    rankingObject = Ranking(metrics)
+    rankings      = rankingObject.get_rankings(repositories)
 
-    log.log_final_scores(scores)
+    log.log_final_rankings(rankings)
+
+    print_results(metrics, rankings)
 
 if __name__ == "__main__":
     main()

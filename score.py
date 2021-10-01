@@ -2,7 +2,7 @@ import re
 from log import log
 
 class Node:
-    # Used to contain scoring information for a repository. Also has a left and right child
+    # Used to contain ranking information for a repository. Also has a left and right child
     # for use in a binary tree.
     
     def __init__(self, repository, score):
@@ -11,24 +11,17 @@ class Node:
         self.left  = None
         self.right = None
 
-    def to_dict(self):
-        return {
-            'repository': self.repository.name, 
-            'score':      self.score,
-            'sub scores': self.repository.scores,
-        }
-
-class Score:
-    # When a score object is created, a list of repositories and a list of metrics is passed
+class Ranking:
+    # When a ranking object is created, a list of repositories and a list of metrics is passed
     # to it's constructor. The purpose of this class is to calculate the sub scores and total
     # score for each repository, and returns an list of these repositories ordered by their
-    # total score (in descending order). Uses a binary tree to store the scores.
+    # total score (in descending order). Uses a binary tree to store the rankings.
 
     def __init__(self, metrics):
-        self.metrics      = metrics
-        self.tree         = None
+        self.metrics = metrics
+        self.tree    = None
 
-    def get_scores(self, repositories):
+    def get_rankings(self, repositories):
         for repository in repositories:
             score = self.__determine_score(repository)
             node  = Node(repository, score)
@@ -72,7 +65,7 @@ class Score:
         if left_list is not None:
             ordered_list += left_list
 
-        ordered_list.append(tree.to_dict())
+        ordered_list.append(tree)
 
         right_list = self.__get_ordered_list(tree.right)
         if right_list is not None:
