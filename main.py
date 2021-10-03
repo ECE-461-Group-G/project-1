@@ -47,6 +47,18 @@ def print_results(metrics, rankings):
             repo_line += " " + str(score)
         print(repo_line)
 
+def find_rankings(metrics, repositories):
+    for metric in metrics:
+        sub_scores = metric.calculate_scores(repositories)
+        for i, sub_score in enumerate(sub_scores):
+            repositories[i].scores.append(sub_score)
+
+    rankingObject = Ranking(metrics)
+    rankings      = rankingObject.get_rankings(repositories)
+
+    log.log_final_rankings(rankings)
+    return rankings
+
 def main():
     # Creates a github object used for interacting with GitHub. Creates a list of repositories
     # that will be analyzed, and a list of metrics that will be used to calculate the score. 
@@ -68,15 +80,7 @@ def main():
     ]
     log.log_metrics_created(metrics)
 
-    for metric in metrics:
-        sub_scores = metric.calculate_scores(repositories)
-        for i, sub_score in enumerate(sub_scores):
-            repositories[i].scores.append(sub_score)
-
-    rankingObject = Ranking(metrics)
-    rankings      = rankingObject.get_rankings(repositories)
-
-    log.log_final_rankings(rankings)
+    rankings = find_rankings(metrics, repositories)
 
     print_results(metrics, rankings)
 

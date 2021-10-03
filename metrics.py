@@ -25,8 +25,10 @@ class Metric(ABC):
 
         log.log_metric_subscores_calculated(self, scores, repositories)
 
-        if len(scores) <= 1:
+        if len(scores) == 0:
             return scores
+        if len(scores) == 1:
+            return [1.0]
 
         maxScore, minScore = max(scores), min(scores)
         if maxScore == minScore:
@@ -74,18 +76,16 @@ class CorrectnessMetric(Metric):
         return score
 
     def __download_repository_to_local(self, repo):
-        clone_command = "git clone " + repo.url
         path          = self.directory + "/" + repo.name
+        clone_command = "git clone " + repo.url + " " + path
 
         if not os.path.exists(path):
-            if self.directory not in os.getcwd():
-                os.chdir(self.directory)
             os.system(clone_command)
 
         return path
 
     def __run_test(self, test_name, repository_path):
-        output = subprocess.Popen(["semgrep", "--config", test_name, "--json", repository_path], stdout=subprocess.PIPE)
+        output = subprocess.Popen(["semgrep", "--config", test_name, "--json", '-q', repository_path], shell=False, stdout=subprocess.PIPE)
         output.wait()
 
         line   = output.stdout.readline()
@@ -115,7 +115,7 @@ class BusFactorMetric(Metric):
 class ResponsivenessMetric(Metric):
     # "Responsiveness" measures how quickly developers respond to an issue with the repository. We
     # use the average time that currently opened issues have been open for and the number of dependencies
-    # that the repository has.
+    # that the repository has. The average time is measured in days. 
 
     def calculate_score(self, repo):
         ave_time_issue_is_open = self.__get_ave_time_issue_is_open(repo)
@@ -129,7 +129,7 @@ class ResponsivenessMetric(Metric):
     def __get_ave_time_issue_is_open(self, repo):
         avg_time_issue_is_open = 0
         for issue in repo.open_issues:
-            avg_time_issue_is_open += (datetime.now().day - issue.created_at.day)
+            avg_time_issue_is_open += (datetime.now() - issue.created_at).days
 
         score = (avg_time_issue_is_open / len(repo.open_issues))
         return score
