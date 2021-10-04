@@ -30,22 +30,26 @@ def create_list_of_repositories(file_name, github):
 
     log.log_url_file_closed(file_name)
     log.log_repo_list_created(repositories)
+
     return repositories
 
 def print_results(metrics, rankings):
     # Prints out the metric names, repository urls, repository total scores, and repository sub 
     # scores. The repositories are printed in order of their total score. 
+    output_string = ""
 
     header = "URL"
     for metric in metrics:
         header += " " + metric.name
-    print(header)
+    output_string += header + "\n"
 
     for ranking in rankings:
         repo_line = ranking.repository.url + " " + str(ranking.score)
         for score in ranking.repository.scores:
             repo_line += " " + str(score)
-        print(repo_line)
+        output_string += repo_line + "\n"
+
+    return output_string
 
 def find_rankings(metrics, repositories):
     for metric in metrics:
@@ -72,17 +76,18 @@ def main():
 
     repositories = create_list_of_repositories(sys.argv[1], github)
     metrics      = [
-        RampUpMetric        ("RAMP_UP_SCORE"              , .1),
-        CorrectnessMetric   ("CORRECTNESS_SCORE"          , .2),
-        BusFactorMetric     ("BUS_FACTOR_SCORE"           , .5),
+        RampUpMetric        ("RAMP_UP_SCORE"              , .3),
+        CorrectnessMetric   ("CORRECTNESS_SCORE"          , .4),
+        BusFactorMetric     ("BUS_FACTOR_SCORE"           , .8),
         ResponsivenessMetric("RESPONSIVE_MAINTAINER_SCORE", .3),
-        LicenseMetric       ("LICENSE_SCORE"              , .9)
+        LicenseMetric       ("LICENSE_SCORE"              , .5)
     ]
     log.log_metrics_created(metrics)
 
-    rankings = find_rankings(metrics, repositories)
+    rankings      = find_rankings(metrics, repositories)
+    output_string = print_results(metrics, rankings)
 
-    print_results(metrics, rankings)
+    print(output_string)
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,7 @@ import datetime
 
 class Log():
     log_file  = os.environ['LOG_FILE']
-    log_level = int(os.environ['LOG_LEVEL'])
+    log_level = int(os.environ['LOG_LEVEL']) if os.environ.get('LOG_LEVEL') else 0 
     warning   = "[WARNING] "
     debug     = "[DEBUG  ] "
     trace     = "[TRACE  ] "

@@ -17,3 +17,8 @@ if __name__ == '__main__':
     coverage         = coverage_results.split()[-1]
 
     print(f"{tests_passed}/{tests_completed} test cases passed. {coverage}% line coverage achieved.")
+
+    # print()
+
+    # for line in test_output.stdout.readlines():
+        # print(line.decode('utf-8'))

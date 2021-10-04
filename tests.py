@@ -2,13 +2,36 @@ import unittest
 import warnings
 import os
 import datetime
+import subprocess
 
 from github import Github
 
 from repository import Repository
 from metrics import BusFactorMetric, CorrectnessMetric, RampUpMetric, ResponsivenessMetric, LicenseMetric
 from score import Ranking 
-from main import find_rankings
+from main import create_list_of_repositories, find_rankings, print_results, clear_log_file
+
+def test_clear_log_file(repo):
+    # We test to see if the function "clear_log_file()" actually clears the log file. This is necessary
+    # to ensure that all logs are from the most recent run.
+
+    log_file = os.environ['LOG_FILE']
+    with open(log_file, "w") as file:
+        for i in range(0, 10):
+            if i % 2:
+                file.write("This is line #" + str(i) + ".\n")
+            else:
+                file.write("\n")
+
+    clear_log_file()
+
+    with open(log_file, "r") as file:
+        lines = file.readlines()
+        if len(lines) != 0:
+            print("The log file should have 1 empty line, but it had " + str(len(lines)) + ".")
+            return False
+
+    return True
 
 def test_npm_repository_name(token):
     url    = 'https://www.npmjs.com/package/express'
@@ -90,6 +113,14 @@ def test_num_dependencies(repo):
 
     print("The fetched number of dependencies, " + str(repo.num_dependencies) + ", does not match the expected number of dependencies, " + str(expected_num_dependencies) + ".")
     return False
+
+def test_license_name(repo):
+    expected_license_name = None
+    if repo.license_name != expected_license_name:
+        print("The fetched license name, " + str(repo.license_name) + ", does not match the expected license name, " + expected_license_name + ".")
+        return False
+
+    return True
 
 def test_ramp_up_metric(repo):
     # The ramp up metric measures the length of a repository's read me. The test
@@ -202,13 +233,16 @@ def test_score_calculation(repo):
     expected_total_score = sum([metric.weight for metric in metrics])
     repository_score     = rankings[0].score
 
+    for repository in repositories:
+        repository.scores = []
+
     if repository_score != expected_total_score:
         print(f"The total score should be {expected_total_score}, but it was {repository_score}.")
         return False
 
     return True
     
-def test_ranking():
+def test_ranking(repo):
     # Now that we tested all the subsystems and modules, all we have to do is to make sure that
     # the repositories are ranked in the correct order. We'll test this by creating a list of metrics
     # and a list of repositories, and passing them into the function "find_rankings()". We'll test to
@@ -242,6 +276,46 @@ def test_ranking():
 
     return True
 
+def test_output(repo):
+    metrics      = [
+        RampUpMetric        ("RAMP_UP_SCORE"              , .1),
+        CorrectnessMetric   ("CORRECTNESS_SCORE"          , .2),
+        BusFactorMetric     ("BUS_FACTOR_SCORE"           , .5),
+        ResponsivenessMetric("RESPONSIVE_MAINTAINER_SCORE", .3),
+        LicenseMetric       ("LICENSE_SCORE"              , .9)
+    ]
+    repositories = [repo]
+    rankings     = find_rankings(metrics, repositories)
+    output       = print_results(metrics, rankings)
+
+    expected_header = "URL RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE"
+    expected_scores = "https://github.com/ECE-461-Group-G/test 2.0 1.0 1.0 1.0 1.0 1.0"
+    header = output.split("\n")[0]
+    scores = output.split("\n")[1]
+
+    for repository in repositories:
+        repository.scores = []
+
+    if expected_header != header:
+        print(f"The header should be '{expected_header}', but it was '{header}'.")
+        return False
+
+    if expected_scores != scores:
+        print(f"The scores should be '{expected_scores}', but it was '{scores}'.")
+        return False
+
+    return True
+
+def test_metric_when_empty(repo):
+    metric = RampUpMetric("ramp up metric", .1)
+    scores = metric.calculate_scores([])
+
+    if scores != []:
+        print(f"The metric should have returned an empty list, but it returned {scores}.")
+        return False
+
+    return True
+
 def test():
     # Here we run our tests. Most tests are a function that accept a 'repo' argument. These test functions are
     # stored in a list and iterated through. Other tests accept unique arguments, so they are run individually.
@@ -261,11 +335,9 @@ def test():
         num_passes += 1
     num_tests += 1
 
-    if test_ranking():
-        num_passes += 1
-    num_tests += 1
-
     repo_tests = [
+        test_license_name,
+        test_ranking,
         test_repository_name,
         test_num_stars,
         test_commits,
@@ -280,6 +352,9 @@ def test():
         test_license_metric,
         test_responsiveness_factor_metric,
         test_score_calculation,
+        test_output,
+        test_metric_when_empty,
+        test_clear_log_file
     ]
     for test in repo_tests:
         if test(repo):
