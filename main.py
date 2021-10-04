@@ -44,9 +44,9 @@ def print_results(metrics, rankings):
     output_string += header + "\n"
 
     for ranking in rankings:
-        repo_line = ranking.repository.url + " " + str(ranking.score)
+        repo_line = ranking.repository.url + " " + str(round(ranking.score, 1))
         for score in ranking.repository.scores:
-            repo_line += " " + str(score)
+            repo_line += " " + str(round(score, 1))
         output_string += repo_line + "\n"
 
     return output_string
