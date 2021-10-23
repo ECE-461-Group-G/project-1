@@ -130,9 +130,11 @@ class ResponsivenessMetric(Metric):
         avg_time_issue_is_open = 0
         for issue in repo.open_issues:
             avg_time_issue_is_open += (datetime.now() - issue.created_at).days
-
-        score = (avg_time_issue_is_open / len(repo.open_issues))
-        return score
+        
+        if len(repo.open_issues) == 0:
+            return 1
+        else:
+            return avg_time_issue_is_open / len(repo.open_issues)
 
     def __get_num_dependencies(self, repo):
         return repo.num_dependencies
